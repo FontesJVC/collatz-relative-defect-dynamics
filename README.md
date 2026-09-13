@@ -24,7 +24,18 @@ The repository now also includes:
 - Hypothesis property-based tests that generate adversarial inputs automatically;
 - an exhaustive countdown/recharge audit including positive and negative defects;
 - a finite-horizon closure audit including \(R=2\), \(H=0\), terminal \(t=0\), and representative changes;
-- a seeded random stress test for large reproducible searches.
+- a seeded random stress test for large reproducible searches;
+- automatic timestamped `.txt` reports for the standalone audit scripts.
+
+## Automatic audit reports
+
+Standalone scripts print their normal output to the console and also save a report under:
+
+```text
+audit_results/
+```
+
+Each report records timestamps, elapsed time, Python/platform information, the Git commit when available, the exact command-line parameters, and the complete audit output. This makes large local searches reproducible and suitable for archiving alongside a specific preprint release.
 
 ## What is tested
 
@@ -74,8 +85,6 @@ Python 3.10+ is recommended.
 
 ```bash
 python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -105,7 +114,7 @@ Run the exhaustive finite triangular audit at its default scope:
 PYTHONPATH=src python experiments/exhaustive_triangular_bijection.py
 ```
 
-Windows PowerShell commands and larger suggested domains are documented in [`LOCAL_TESTING.md`](LOCAL_TESTING.md).
+Windows PowerShell commands, automatic-report details, and larger suggested domains are documented in [`LOCAL_TESTING.md`](LOCAL_TESTING.md).
 
 The expected conclusion, if all tested identities survive, is phrased conservatively:
 
@@ -122,12 +131,15 @@ No counterexample found within the tested domain.
 ├── LOCAL_TESTING.md
 ├── audit_paper3.py
 ├── requirements.txt
+├── audit_results/
+│   └── README.md
 ├── src/
 │   └── collatz_relative_defect/
 │       ├── __init__.py
 │       ├── core.py
 │       ├── defect.py
 │       ├── layered.py
+│       ├── reporting.py
 │       └── triangular.py
 ├── tests/
 │   ├── test_core.py
@@ -154,6 +166,7 @@ The repository is intended to make the finite checks transparent and reproducibl
 - testing residue-level transitions at many precisions;
 - preserving regression cases that previously exposed false formulations;
 - attempting to falsify formulas by exhaustive and property-based search;
-- documenting exactly which computational domains were tested.
+- documenting exactly which computational domains were tested;
+- archiving selected audit reports with preprint/release versions.
 
-Future versions may add machine-readable audit summaries, archived outputs associated with a specific preprint version, and release snapshots corresponding to arXiv revisions.
+Future versions may add machine-readable audit summaries and release snapshots corresponding to arXiv revisions.
