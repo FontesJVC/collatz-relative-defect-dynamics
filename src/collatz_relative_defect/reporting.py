@@ -25,17 +25,28 @@ class _Tee:
 
 
 def _repo_root() -> Path:
+    """Best-effort repository root, independent of the shell's current directory."""
+    candidates = [Path.cwd().resolve(), Path(__file__).resolve().parent]
+    seen: set[Path] = set()
+    for start in candidates:
+        for path in (start, *start.parents):
+            if path in seen:
+                continue
+            seen.add(path)
+            if (path / ".git").exists():
+                return path
+    # Package layout fallback: repo/src/package/reporting.py
     return Path(__file__).resolve().parents[2]
 
 
 def _resolve_git_dir(root: Path) -> Path | None:
-    """Return the repository's git directory, including worktree-style .git files."""
+    """Return the Git directory for normal clones and worktrees."""
     git_path = root / ".git"
     if git_path.is_dir():
         return git_path
     if git_path.is_file():
         try:
-            text = git_path.read_text(encoding="utf-8").strip()
+            text = git_path.read_text(encoding="utf-8", errors="replace").strip()
             if text.lower().startswith("gitdir:"):
                 target = text.split(":", 1)[1].strip()
                 path = Path(target)
@@ -47,38 +58,76 @@ def _resolve_git_dir(root: Path) -> Path | None:
     return None
 
 
+def _read_ref(git_dir: Path, ref: str) -> str | None:
+    """Resolve a ref from loose refs, packed refs, and worktree common dirs."""
+    dirs = [git_dir]
+
+    # Worktrees can store shared refs in a common Git directory.
+    commondir = git_dir / "commondir"
+    try:
+        if commondir.is_file():
+            target = commondir.read_text(encoding="utf-8", errors="replace").strip()
+            common = Path(target)
+            if not common.is_absolute():
+                common = (git_dir / common).resolve()
+            dirs.append(common)
+    except OSError:
+        pass
+
+    for base in dirs:
+        ref_file = base / ref
+        try:
+            if ref_file.is_file():
+                value = ref_file.read_text(encoding="utf-8", errors="replace").strip()
+                if value:
+                    return value
+        except OSError:
+            pass
+
+        packed_refs = base / "packed-refs"
+        try:
+            if packed_refs.is_file():
+                for line in packed_refs.read_text(encoding="utf-8", errors="replace").splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#") or line.startswith("^"):
+                        continue
+                    parts = line.split(maxsplit=1)
+                    if len(parts) == 2 and parts[1] == ref:
+                        return parts[0]
+        except OSError:
+            pass
+
+    return None
+
+
 def _git_commit_from_files(root: Path) -> str | None:
-    """Read HEAD directly so GitHub Desktop clones work even without git.exe in PATH."""
+    """Read HEAD directly so GitHub Desktop clones work without git.exe in PATH."""
     git_dir = _resolve_git_dir(root)
     if git_dir is None:
         return None
 
     try:
-        head = (git_dir / "HEAD").read_text(encoding="utf-8").strip()
+        head = (git_dir / "HEAD").read_text(encoding="utf-8", errors="replace").strip()
     except OSError:
-        return None
+        head = ""
 
-    if not head.startswith("ref: "):
-        return head or None
+    if head:
+        if not head.startswith("ref: "):
+            return head
+        ref = head[5:].strip()
+        value = _read_ref(git_dir, ref)
+        if value:
+            return value
 
-    ref = head[5:].strip()
-    ref_file = git_dir / ref
+    # Last-resort fallback: the newest reflog entry stores the new HEAD hash.
+    logs_head = git_dir / "logs" / "HEAD"
     try:
-        if ref_file.is_file():
-            return ref_file.read_text(encoding="utf-8").strip() or None
-    except OSError:
-        pass
-
-    packed_refs = git_dir / "packed-refs"
-    try:
-        if packed_refs.is_file():
-            for line in packed_refs.read_text(encoding="utf-8").splitlines():
-                line = line.strip()
-                if not line or line.startswith("#") or line.startswith("^"):
-                    continue
-                parts = line.split(" ", 1)
-                if len(parts) == 2 and parts[1] == ref:
-                    return parts[0]
+        if logs_head.is_file():
+            lines = [line for line in logs_head.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
+            if lines:
+                fields = lines[-1].split()
+                if len(fields) >= 2 and len(fields[1]) >= 7:
+                    return fields[1]
     except OSError:
         pass
 
@@ -146,6 +195,7 @@ def run_with_report(stem: str, main_func: Callable[[], None]) -> None:
         f"python:      {sys.version.split()[0]}",
         f"platform:    {platform.platform()}",
         f"git_commit:  {_git_commit(root)}",
+        f"repo_root:   {root}",
         f"command:     {command}",
         f"cwd:         {os.getcwd()}",
         "=" * 68,
