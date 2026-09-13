@@ -8,6 +8,7 @@ from collatz_relative_defect import (
     triangular_defect_residues,
     triangular_domain_ranges,
 )
+from collatz_relative_defect.reporting import run_with_report
 
 
 def audit(y0: int, m: int, max_depth: int) -> tuple[int, int]:
@@ -36,11 +37,15 @@ def main() -> None:
     parser.add_argument("--max-depth", type=int, default=3)
     args = parser.parse_args()
     total, failures = audit(args.y0, args.m, args.max_depth)
-    print(f"Tuples tested: {total}")
-    print(f"Failures: {failures}")
+    print("Exhaustive triangular base-defect audit")
+    print(f"y0:            {args.y0}")
+    print(f"m:             {args.m}")
+    print(f"max_depth:     {args.max_depth}")
+    print(f"tuples tested: {total}")
+    print(f"failures:      {failures}")
     if failures == 0:
         print("No counterexample found within the tested finite quotient domain.")
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("exhaustive_triangular_bijection", main)
