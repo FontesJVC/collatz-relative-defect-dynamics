@@ -5,6 +5,7 @@ import argparse
 from itertools import product
 
 from collatz_relative_defect import inverse_child, layered_transition, relative_state
+from collatz_relative_defect.reporting import run_with_report
 
 
 def admissible_words(H: int):
@@ -90,6 +91,9 @@ def main() -> None:
     args = p.parse_args()
     total = audit(args.max_R, args.max_H, args.q_cap)
     print("Finite-horizon closure audit")
+    print(f"max_R:             {args.max_R}")
+    print(f"max_H:             {args.max_H}")
+    print(f"q_cap:             {args.q_cap}")
     print(f"state comparisons: {total}")
     print("counterexamples:   0")
     print("Includes H=0, R=2, final-edge t=0, source/defect representative changes,")
@@ -97,4 +101,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("finite_horizon_closure", main)
