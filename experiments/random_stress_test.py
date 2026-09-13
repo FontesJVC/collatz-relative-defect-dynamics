@@ -16,6 +16,7 @@ from collatz_relative_defect import (
     relative_state,
     v3,
 )
+from collatz_relative_defect.reporting import run_with_report
 
 
 def random_interior(rng: random.Random, max_source: int) -> int:
@@ -132,6 +133,8 @@ def main() -> None:
     print("Random adversarial stress test")
     print(f"seed:              {args.seed}")
     print(f"requested cases:   {args.cases}")
+    print(f"max_source:        {args.max_source}")
+    print(f"max_q:             {args.max_q}")
     print(f"completed checks:  {sum(counts.values())}")
     for key in sorted(counts):
         print(f"{key:18s} {counts[key]}")
@@ -140,4 +143,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("random_stress", main)
