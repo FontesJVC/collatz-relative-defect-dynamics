@@ -1,0 +1,113 @@
+# Collatz Relative Defect Dynamics — Computational Audit
+
+Computational stress tests, finite-instance verification, and counterexample searches for the relative ternary defect dynamics of the accelerated Collatz inverse relation.
+
+This repository accompanies the preprint **“Relative Ternary Defect Dynamics in the Accelerated Collatz Inverse Relation”**. Its purpose is deliberately adversarial: reproduce examples, verify finite instances of the stated identities, and search systematically for counterexamples within explicit finite domains.
+
+> **Important.** The computations in this repository are **not proofs** of the mathematical results and do **not** constitute a proof of the Collatz conjecture. The proofs are contained in the manuscript. Passing a finite computational audit means only that no counterexample was found in the tested domain.
+
+## What is tested
+
+| Manuscript result / structure | Computational check |
+|---|---|
+| Inverse families \(X_t(y,q)\) | `tests/test_core.py`, `audit_paper3.py` |
+| Exact defect recurrence | `tests/test_defect.py`, `audit_paper3.py` |
+| Local lift–defect isometry | `tests/test_defect.py`, `experiments/search_counterexamples.py` |
+| Countdown/recharge dichotomy | `tests/test_defect.py`, `experiments/search_counterexamples.py` |
+| Explicit recharge-center formula | `tests/test_defect.py` |
+| Layered relative transition | `tests/test_layered.py` |
+| Projective compatibility | `tests/test_layered.py`, `audit_paper3.py` |
+| Finite-state obstruction family | `audit_paper3.py` |
+
+Additional exhaustive tests for the triangular bijection, representative independence, finite-horizon closure, and the precision lower-bound construction will be added as separate experiments.
+
+## Mathematical conventions
+
+The accelerated odd Collatz map is
+
+\[
+T(n)=\frac{3n+1}{2^{\nu_2(3n+1)}}.
+\]
+
+For an interior source \(y\) and family \(t\in\{0,1,2\}\), the code uses the unique base exponent \(b_t(y)\in\{1,\ldots,6\}\) satisfying
+
+\[
+2^{b_t(y)}y\equiv 1+3t\pmod 9,
+\]
+
+and
+
+\[
+X_t(y,q)=\frac{2^{b_t(y)+6q}y-1}{3}.
+\]
+
+The implementation also follows the paper's extended convention that \(b_t(u)\) is defined for every integer \(u\) that is a unit modulo \(3\).
+
+## Running the audit
+
+Python 3.10+ is recommended.
+
+```bash
+python -m venv .venv
+# Windows: .venv\Scripts\activate
+# Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Run the unit tests:
+
+```bash
+PYTHONPATH=src pytest -q
+```
+
+Run the consolidated finite audit:
+
+```bash
+PYTHONPATH=src python audit_paper3.py
+```
+
+Run a broader counterexample search:
+
+```bash
+PYTHONPATH=src python experiments/search_counterexamples.py --max-source 200 --max-q 6
+```
+
+The expected conclusion, if all tested identities survive, is phrased conservatively:
+
+```text
+Counterexamples found: 0
+No counterexample found within the tested domain.
+```
+
+## Repository layout
+
+```text
+.
+├── README.md
+├── audit_paper3.py
+├── requirements.txt
+├── src/
+│   └── collatz_relative_defect/
+│       ├── __init__.py
+│       ├── core.py
+│       ├── defect.py
+│       └── layered.py
+├── tests/
+│   ├── test_core.py
+│   ├── test_defect.py
+│   └── test_layered.py
+└── experiments/
+    └── search_counterexamples.py
+```
+
+## Scope
+
+The repository is intended to make the finite checks transparent and reproducible. It is especially useful for:
+
+- reproducing the numerical examples from the paper;
+- checking exact integer identities against direct evaluation;
+- testing residue-level transitions at many precisions;
+- attempting to falsify the formulas by exhaustive finite search;
+- documenting exactly which computational domains were tested.
+
+Future versions may add larger exhaustive searches, machine-readable audit summaries, and archived outputs associated with a specific preprint version.
