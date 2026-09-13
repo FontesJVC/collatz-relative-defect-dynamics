@@ -18,23 +18,33 @@ The default consolidated audit currently checks **13,331 finite cases**, includi
 - 55 instances of the finite-state obstruction family;
 - direct checks of inverse families and the exact defect recurrence.
 
-The unit-test suite additionally checks representative independence for layered transitions.
+The repository now also includes:
+
+- regression tests for previously discovered edge cases and false fixed-precision formulations;
+- Hypothesis property-based tests that generate adversarial inputs automatically;
+- an exhaustive countdown/recharge audit including positive and negative defects;
+- a finite-horizon closure audit including \(R=2\), \(H=0\), terminal \(t=0\), and representative changes;
+- a seeded random stress test for large reproducible searches.
 
 ## What is tested
 
 | Manuscript result / structure | Computational check |
 |---|---|
-| Inverse families \(X_t(y,q)\) | `tests/test_core.py`, `audit_paper3.py` |
-| Exact defect recurrence | `tests/test_defect.py`, `audit_paper3.py` |
-| Local lift–defect isometry | `tests/test_defect.py`, `experiments/search_counterexamples.py` |
+| Inverse families \(X_t(y,q)\) | `tests/test_core.py`, `tests/test_properties.py`, `audit_paper3.py` |
+| Exact defect recurrence | `tests/test_defect.py`, `tests/test_properties.py`, `audit_paper3.py` |
+| Local lift–defect isometry | `tests/test_defect.py`, `tests/test_properties.py`, `experiments/search_counterexamples.py` |
 | Finite triangular base–defect bijection | `tests/test_triangular.py`, `experiments/exhaustive_triangular_bijection.py`, `audit_paper3.py` |
-| Countdown/recharge dichotomy | `tests/test_defect.py`, `experiments/search_counterexamples.py` |
-| Explicit recharge-center formula | `tests/test_defect.py` |
-| Layered relative transition | `tests/test_layered.py` |
-| Representative independence | `tests/test_layered.py` |
+| Countdown/recharge dichotomy | `tests/test_defect.py`, `tests/test_properties.py`, `experiments/exhaustive_recharge.py` |
+| Explicit recharge-center formula | `tests/test_defect.py`, `tests/test_properties.py` |
+| Negative-defect example and fixed-point loop | `tests/test_regressions.py` |
+| Terminal family \(t=0\) and corrected precision loss | `tests/test_edge_cases.py` |
+| Layered relative transition | `tests/test_layered.py`, `tests/test_properties.py` |
+| Representative independence | `tests/test_layered.py`, `tests/test_properties.py`, `experiments/finite_horizon_closure.py` |
 | Projective compatibility | `tests/test_layered.py`, `audit_paper3.py` |
+| Finite-horizon closure | `experiments/finite_horizon_closure.py` |
 | Precision lower-bound construction | `audit_paper3.py` |
 | Finite-state obstruction family | `audit_paper3.py` |
+| Mixed large-domain stress testing | `experiments/random_stress_test.py` |
 
 ## Mathematical conventions
 
@@ -69,7 +79,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Run the unit tests:
+Run the unit and property-based tests:
 
 ```bash
 PYTHONPATH=src pytest -q
@@ -81,10 +91,12 @@ Run the consolidated finite audit:
 PYTHONPATH=src python audit_paper3.py
 ```
 
-Run a broader counterexample search:
+Run broader adversarial searches:
 
 ```bash
-PYTHONPATH=src python experiments/search_counterexamples.py --max-source 200 --max-q 6
+PYTHONPATH=src python experiments/exhaustive_recharge.py --max-source 300 --max-defect 150 --max-q 5
+PYTHONPATH=src python experiments/finite_horizon_closure.py --max-R 4 --max-H 3 --q-cap 2
+PYTHONPATH=src python experiments/random_stress_test.py --seed 20260913 --cases 100000
 ```
 
 Run the exhaustive finite triangular audit at its default scope:
@@ -92,6 +104,8 @@ Run the exhaustive finite triangular audit at its default scope:
 ```bash
 PYTHONPATH=src python experiments/exhaustive_triangular_bijection.py
 ```
+
+Windows PowerShell commands and larger suggested domains are documented in [`LOCAL_TESTING.md`](LOCAL_TESTING.md).
 
 The expected conclusion, if all tested identities survive, is phrased conservatively:
 
@@ -105,6 +119,7 @@ No counterexample found within the tested domain.
 ```text
 .
 ├── README.md
+├── LOCAL_TESTING.md
 ├── audit_paper3.py
 ├── requirements.txt
 ├── src/
@@ -117,10 +132,16 @@ No counterexample found within the tested domain.
 ├── tests/
 │   ├── test_core.py
 │   ├── test_defect.py
+│   ├── test_edge_cases.py
 │   ├── test_layered.py
+│   ├── test_properties.py
+│   ├── test_regressions.py
 │   └── test_triangular.py
 └── experiments/
+    ├── exhaustive_recharge.py
     ├── exhaustive_triangular_bijection.py
+    ├── finite_horizon_closure.py
+    ├── random_stress_test.py
     └── search_counterexamples.py
 ```
 
@@ -131,7 +152,8 @@ The repository is intended to make the finite checks transparent and reproducibl
 - reproducing numerical examples from the paper;
 - checking exact integer identities against direct evaluation;
 - testing residue-level transitions at many precisions;
-- attempting to falsify formulas by exhaustive finite search;
+- preserving regression cases that previously exposed false formulations;
+- attempting to falsify formulas by exhaustive and property-based search;
 - documenting exactly which computational domains were tested.
 
-Future versions may add finite-horizon closure stress tests, larger search domains, machine-readable audit summaries, and archived outputs associated with a specific preprint version.
+Future versions may add machine-readable audit summaries, archived outputs associated with a specific preprint version, and release snapshots corresponding to arXiv revisions.
