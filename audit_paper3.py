@@ -18,6 +18,7 @@ from collatz_relative_defect import (
     triangular_domain_ranges,
     v3,
 )
+from collatz_relative_defect.reporting import run_with_report
 
 
 def check(name, fn):
@@ -190,4 +191,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("audit_paper3", main)
