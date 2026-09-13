@@ -4,6 +4,7 @@ from itertools import product
 
 from collatz_relative_defect import (
     accelerated_collatz,
+    admissible_words,
     defect_recurrence_step,
     follow_inverse_path,
     inverse_child,
@@ -13,6 +14,8 @@ from collatz_relative_defect import (
     recharge_valuation_identity,
     reference_path,
     relative_state,
+    triangular_defect_residues,
+    triangular_domain_ranges,
     v3,
 )
 
@@ -73,6 +76,23 @@ def local_isometry():
     return count
 
 
+def triangular_bijection():
+    count = 0
+    for d in range(1, 4):
+        for tau in admissible_words(d):
+            ranges = triangular_domain_ranges(d, 1)
+            outputs = set()
+            domain_size = 1
+            for r in ranges:
+                domain_size *= len(r)
+            for qs in product(*ranges):
+                outputs.add(triangular_defect_residues(1, tau, 1, qs))
+                count += 1
+            assert len(outputs) == domain_size
+    assert count == 8919
+    return count
+
+
 def recharge():
     count = 0
     for y in range(1, 60, 2):
@@ -106,6 +126,25 @@ def layered():
     return count
 
 
+def precision_lower_bound_family():
+    count = 0
+    for R in range(2, 6):
+        for H in range(1, 8):
+            u = 1 + 2 * (3 ** (R + H - 1))
+            v = 1 + 2 * (3 ** (R + H))
+            Du = (u - 1) // 3
+            Dv = (v - 1) // 3
+            assert Du % (3 ** (R + H - 2)) == Dv % (3 ** (R + H - 2))
+            for _ in range(H):
+                u = inverse_child(u, 1, 0)
+                v = inverse_child(v, 1, 0)
+            assert v3(u - 1) == R - 1
+            assert v3(v - 1) == R
+            count += 1
+    assert count == 28
+    return count
+
+
 def finite_state_obstruction_examples():
     count = 0
     for L in range(2, 12):
@@ -128,8 +167,10 @@ def main():
         ("Inverse families", inverse_families),
         ("Exact defect recurrence", defect_recurrence),
         ("Local lift-defect isometry", local_isometry),
+        ("Finite triangular bijection", triangular_bijection),
         ("Countdown/recharge critical identity", recharge),
         ("Layered/projective compatibility", layered),
+        ("Precision lower-bound construction", precision_lower_bound_family),
         ("Finite-state obstruction examples", finite_state_obstruction_examples),
     ]
     total = 0
