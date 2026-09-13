@@ -4,6 +4,7 @@ import argparse
 from itertools import product
 
 from collatz_relative_defect import local_isometry_holds, recharge_valuation_identity
+from collatz_relative_defect.reporting import run_with_report
 
 
 def search(max_source: int, max_q: int) -> tuple[int, int]:
@@ -40,11 +41,14 @@ def main() -> None:
     parser.add_argument("--max-q", type=int, default=4)
     args = parser.parse_args()
     checked, failures = search(args.max_source, args.max_q)
-    print(f"Checked cases: {checked}")
-    print(f"Counterexamples found: {failures}")
+    print("Finite counterexample search")
+    print(f"max_source:            {args.max_source}")
+    print(f"max_q:                 {args.max_q}")
+    print(f"checked cases:         {checked}")
+    print(f"counterexamples found: {failures}")
     if failures == 0:
         print("No counterexample found within the tested domain.")
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("search_counterexamples", main)
