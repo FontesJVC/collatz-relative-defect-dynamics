@@ -5,6 +5,7 @@ import argparse
 from fractions import Fraction
 
 from collatz_relative_defect import base_exponent, inverse_child, v3
+from collatz_relative_defect.reporting import run_with_report
 
 
 def v3_fraction(x: Fraction) -> int:
@@ -60,6 +61,9 @@ def main() -> None:
     args = p.parse_args()
     c0, c1 = audit(args.max_source, args.max_defect, args.max_q)
     print("Exhaustive countdown/recharge audit")
+    print(f"max_source:      {args.max_source}")
+    print(f"max_defect:      {args.max_defect}")
+    print(f"max_q:           {args.max_q}")
     print(f"countdown cases: {c0}")
     print(f"critical cases:  {c1}")
     print(f"total cases:     {c0 + c1}")
@@ -68,4 +72,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run_with_report("exhaustive_recharge", main)
