@@ -18,6 +18,7 @@ from .defect import (
     relative_step,
 )
 from .layered import layered_transition, project_state, relative_state
+from .triangular import admissible_words, precisions, triangular_defect_residues, triangular_domain_ranges
 
 __all__ = [
     "accelerated_collatz",
@@ -37,5 +38,9 @@ __all__ = [
     "relative_state",
     "relative_step",
     "v2",
+    "admissible_words",
+    "precisions",
+    "triangular_defect_residues",
+    "triangular_domain_ranges",
     "v3",
 ]
